@@ -56,8 +56,7 @@ void match_template(CvSeq* contours, CvSeq* tmpl_contours) {
             continue;
         }
 
-        //double error = pghMatchShapes(contours, tmpl_contours);
-        double error = cvMatchContours(contours, tmpl_contours, CV_CONTOURS_MATCH_I1);
+        double error = pghMatchShapes(contours, tmpl_contours);
 
         match_errors[num_idx].digit = digit_array[num_idx];
         match_errors[num_idx].error = error;
