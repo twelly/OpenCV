@@ -52,11 +52,12 @@ void match_template(CvSeq* contours, CvSeq* tmpl_contours) {
     struct MatchError match_errors[10];
 
     for(int num_idx = 0; tmpl_contours != 0; tmpl_contours = tmpl_contours->h_next, num_idx++) {
-        if (tmpl_contours->total < 50) {
+        if (tmpl_contours->total < 10) {
             continue;
         }
 
-        double error = pghMatchShapes(contours, tmpl_contours);
+        //double error = pghMatchShapes(contours, tmpl_contours);
+        double error = cvMatchContours(contours, tmpl_contours, CV_CONTOURS_MATCH_I1);
 
         match_errors[num_idx].digit = digit_array[num_idx];
         match_errors[num_idx].error = error;
@@ -75,10 +76,10 @@ int main(int argc, char** argv)
     char *tmpl_0_to_9_img_file  = argv[2];
 
     // Load template fle
-    IplImage* tmpl_0_to_9_img = cvLoadImage(tmpl_0_t0_9_img_file, 0);
+    IplImage* tmpl_0_to_9_img = cvLoadImage(tmpl_0_to_9_img_file, 0);
 
     if(tmpl_0_to_9_img == NULL) {
-        printf("\nERROR: Failed to load 0 to 9 template image file: %s\n", tmpl_0_t0_9_img_file);
+        printf("\nERROR: Failed to load 0 to 9 template image file: %s\n", tmpl_0_to_9_img_file);
         return(1);
     }
 
@@ -99,22 +100,27 @@ int main(int argc, char** argv)
     cvNamedWindow("Temporary");
 
     // Find contours
-    CvSeq*        contours      = 0;
-    CvSeq*        tmpl_contours = 0;
-    CvMemStorage* storage       = cvCreateMemStorage(0);
+    CvSeq*        contours          = 0;
+    CvSeq*        tmpl_contours     = 0;
+    CvSeq*        low_contours      = 0;
+    CvSeq*        low_tmpl_contours = 0;
+    CvMemStorage* storage           = cvCreateMemStorage(0);
 
     cvFindContours(tmpl_0_to_9_img , storage, &tmpl_contours, sizeof(CvContour), CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
     cvFindContours(lotto_ticket_img, storage, &contours     , sizeof(CvContour), CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
 
-    for(; contours != 0; contours = contours->h_next) {
-        if (contours->total < 50) {
+    low_contours      = cvApproxPoly(contours     , sizeof(CvContour), storage, CV_POLY_APPROX_DP, 1, 1);
+    low_tmpl_contours = cvApproxPoly(tmpl_contours, sizeof(CvContour), storage, CV_POLY_APPROX_DP, 1, 1);
+
+    for(; low_contours != 0; low_contours = low_contours->h_next) {
+        if (low_contours->total < 10) {
             continue;
         }
 
-        cvDrawContours(tmp_ticket_img, contours, cvScalarAll(255), cvScalar(255), 0, 1);
+        cvDrawContours(tmp_ticket_img, low_contours, cvScalarAll(255), cvScalar(255), 0, 1);
         cvShowImage("Temporary", tmp_ticket_img);
 
-        match_template(contours, tmpl_contours);
+        match_template(low_contours, low_tmpl_contours);
 
         cvWaitKey(0);
     }
