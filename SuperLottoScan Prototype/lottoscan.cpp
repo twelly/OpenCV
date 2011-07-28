@@ -27,7 +27,7 @@ int cmp_match_error(const void* a, const void* b) {
 }
 
 double pghMatchShapes(CvSeq *shape1, CvSeq *shape2) {
-    int dims[] = {8, 8};
+    int dims[] = {5, 5};
 
     CvHistogram* hist1 = cvCreateHist(2, dims, CV_HIST_ARRAY, NULL, 1);
     CvHistogram* hist2 = cvCreateHist(2, dims, CV_HIST_ARRAY, NULL, 1);
@@ -35,8 +35,8 @@ double pghMatchShapes(CvSeq *shape1, CvSeq *shape2) {
     cvCalcPGH(shape1, hist1);
     cvCalcPGH(shape2, hist2);
 
-    cvNormalizeHist(hist1, 100.0f);
-    cvNormalizeHist(hist2, 100.0f);
+    cvNormalizeHist(hist1, 1.0f);
+    cvNormalizeHist(hist2, 1.0f);
 
     double corr = cvCompareHist(hist1, hist2, CV_COMP_BHATTACHARYYA);
 
@@ -52,7 +52,10 @@ void match_template(CvSeq* contours, CvSeq* tmpl_contours) {
     struct MatchError match_errors[10];
 
     for(int num_idx = 0; tmpl_contours != 0; tmpl_contours = tmpl_contours->h_next, num_idx++) {
-        if (tmpl_contours->total < 10) {
+        CvRect rect = cvBoundingRect(tmpl_contours);
+        int    area = rect.width * rect.height;
+
+        if (area < 400) {
             continue;
         }
 
@@ -112,7 +115,10 @@ int main(int argc, char** argv)
     low_tmpl_contours = cvApproxPoly(tmpl_contours, sizeof(CvContour), storage, CV_POLY_APPROX_DP, 1, 1);
 
     for(; low_contours != 0; low_contours = low_contours->h_next) {
-        if (low_contours->total < 10) {
+        CvRect rect = cvBoundingRect(low_contours);
+        int    area = rect.width * rect.height;
+
+        if (area < 400) {
             continue;
         }
 
