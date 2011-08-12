@@ -1,0 +1,45 @@
+#include <cv.h>
+#include <highgui.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+   IplImage* image = cvLoadImage("ticket.jpg", 1);
+   IplImage *gray_image = cvCreateImage(cvGetSize(image),8,1);
+
+   //ALLOCATE STORAGE
+   CvMat* intrinsic_matrix  = cvCreateMat(3,3,CV_32FC1);
+   CvMat* distortion_coeffs = cvCreateMat(5,1,CV_32FC1);
+
+   // Build the undistort map that we will use for all
+   // subsequent frames.
+   IplImage* mapx = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
+   IplImage* mapy = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
+   cvInitUndistortMap(intrinsic_matrix, distortion_coeffs, mapx, mapy);
+
+   IplImage *undistorted_image = cvCloneImage(image);
+
+   // show the original image
+   cvNamedWindow("Original");
+   cvShowImage("Original", image);
+
+   // Example of loading these matrices back in
+   CvMat *intrinsic = (CvMat*)cvLoad("intrinsics.xml");
+   CvMat *distortion = (CvMat*)cvLoad("distortion.xml");
+   // show the undistorted image
+   cvNamedWindow("Undistorted");
+   cvUndistort2(image, undistorted_image, intrinsic, distortion);
+   //cvRemap(undistorted_image, image, mapx, mapy); 
+   cvShowImage("Undistorted", undistorted_image);
+   //Handle pause/unpause and ESC
+   cvWaitKey(0);
+   cvReleaseMat(&intrinsic_matrix);
+   cvReleaseMat(&distortion_coeffs);
+   cvReleaseImage(&image);
+   cvReleaseImage(&mapx);
+   cvReleaseImage(&mapy);
+   cvDestroyWindow("Original");
+   cvDestroyWindow("Undistorted");
+   return 0;
+}

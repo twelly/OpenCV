@@ -14,13 +14,17 @@ int main()
     /* convert to grayscale */
     cvCvtColor(imgOriginal,imgResult,CV_RGB2GRAY);
     imgGray = cvCloneImage(imgResult);
+    cvZero(imgResult);
     /* apply gaussian blur */
     cvSmooth(imgGray, imgResult, CV_GAUSSIAN, 1, 1);
     imgSmooth = cvCloneImage(imgResult);
+    cvZero(imgResult);
     /* apply inverse binarization */
-    cvThreshold(imgSmooth, imgResult,32,255, CV_THRESH_BINARY_INV);
+    cvThreshold(imgSmooth, imgResult,60,255, CV_THRESH_BINARY_INV);
+    //cvAdaptiveThreshold(imgSmooth, imgResult, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY_INV, 5, 2);
     imgThresh = cvCloneImage(imgResult);
-    cvDilate(imgThresh,imgResult,NULL,2);
+    cvZero(imgResult);
+    cvDilate(imgThresh,imgResult,NULL,1);
     cvNamedWindow("result");
     cvShowImage("result", imgResult);
     cvWaitKey(0);
